@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from "@nestjs/common";
+import { Controller, Get, BadRequestException } from "@nestjs/common";
 import { CommitsService } from "./commits.service";
 
 @Controller("commits")
@@ -14,7 +6,11 @@ export class CommitsController {
   constructor(private readonly commitsService: CommitsService) {}
 
   @Get()
-  findAll() {
-    return this.commitsService.findAll();
+  async findAll() {
+    try {
+      return await this.commitsService.findAll();
+    } catch {
+      throw new BadRequestException("Dang! something happened");
+    }
   }
 }

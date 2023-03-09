@@ -1,33 +1,26 @@
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
-import { firstValueFrom } from "rxjs";
+import { catchError, firstValueFrom, map } from "rxjs";
 import { ICommit } from "./types/commits.types";
+import commitInterceptor from "./commit.interceptor";
+import { AxiosError } from "axios";
 
 @Injectable()
 export class CommitsService {
   constructor(private readonly Axios: HttpService) {}
 
   async findAll(): Promise<ICommit[]> {
-    const res = firstValueFrom(
+    return firstValueFrom(
       this.Axios.get<ICommit[]>(
-        `https://api.github.com/repos/edmiquilena/commit-app/commits`
+        `https://api.github.com/repos/${process.env.GIT_USER}/${process.env.REPO}/commits`
       )
-    );
-    const data = (await res).data;
-    return data.map(
-      ({
-        sha,
-        url: mainUrl,
-        commit: { author, message, url },
-        committer: { avatar_url, gravatar_id, login },
-      }) => {
-        return {
-          url: mainUrl,
-          sha,
-          commit: { author, message, url },
-          committer: { avatar_url, gravatar_id, login },
-        };
-      }
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.log(error);
+            throw new Error("Dang, An error happened!");
+          })
+        )
+        .pipe(map((data) => commitInterceptor(data.data)))
     );
   }
 }
