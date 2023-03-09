@@ -26,5 +26,5 @@
       }
     }
   },
-  "defaultProject": "client"
+  "defaultProject": "api"
 }
